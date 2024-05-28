@@ -5,7 +5,15 @@ export default function Sidebar({ docs }) {
     const roots = docs?.filter((doc) => !doc.parent);
     console.log({ roots });
 
-    const nonRoots = Object.groupBy(
+// Node version 21.7 version method Object.groupBy
+    // const nonRoots = Object.groupBy(
+    //     docs?.filter((doc) => doc.parent),
+    //     ({ parent }) => parent
+    // );
+    
+    const _ = require('lodash');
+
+    const nonRoots = _.groupBy(
         docs?.filter((doc) => doc.parent),
         ({ parent }) => parent
     );

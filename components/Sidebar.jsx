@@ -6,17 +6,17 @@ export default function Sidebar({ docs }) {
     console.log({ roots });
 
 // Node version 21.7 version method Object.groupBy
-    // const nonRoots = Object.groupBy(
-    //     docs?.filter((doc) => doc.parent),
-    //     ({ parent }) => parent
-    // );
-    
-    const _ = require('lodash');
-
-    const nonRoots = _.groupBy(
+    const nonRoots = Object.groupBy(
         docs?.filter((doc) => doc.parent),
         ({ parent }) => parent
     );
+    console.log(nonRoots);
+    // const _ = require('lodash');
+
+    // const nonRoots = _.groupBy(
+    //     docs?.filter((doc) => doc.parent),
+    //     ({ parent }) => parent
+    // );
     console.log({ nonRoots });
     return (
         <nav className="lg:block my-10">

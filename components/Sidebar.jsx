@@ -1,23 +1,71 @@
+"use client"
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getDocumentsByTag, getDocumentsByAuthor, getDocumentsByCategory } from "@/utils/doc-utils";
 
 
 export default function Sidebar({ docs }) {
-    const roots = docs?.filter((doc) => !doc.parent);
-    console.log({ roots });
+    const pathName = usePathname();
+    const [rootNodes, setRootNodes] = useState([]);
+    const [nonRootNodesGrouped, setNonRootNodesGrouped] = useState({})
 
-// Node version 21.7 version method Object.groupBy
-    const nonRoots = Object.groupBy(
-        docs?.filter((doc) => doc.parent),
-        ({ parent }) => parent
-    );
-    console.log(nonRoots);
-    // const _ = require('lodash');
+    useEffect(() => {
+        let matchdDocs = docs;
+        if (pathName.includes("/tags")) {
+            const tag = pathName.split("/")[2];
+            matchdDocs = getDocumentsByTag(docs, tag);
 
-    // const nonRoots = _.groupBy(
-    //     docs?.filter((doc) => doc.parent),
-    //     ({ parent }) => parent
-    // );
-    console.log({ nonRoots });
+        } else if (pathName.includes("/author")) {
+            const author = pathName.split("/")[2];
+            matchdDocs = getDocumentsByAuthor(docs, author);
+
+        } else if (pathName.includes("/categories")) {
+            const category = pathName.split("/")[2]
+            matchdDocs = getDocumentsByCategory(docs, category);
+
+        }
+        const roots = matchdDocs?.filter((doc) => !doc.parent);
+        console.log({ roots });
+
+        // Node version 21.7 version method Object.groupBy
+        // const nonRoots = Object.groupBy(
+        //     matchdDocs?.filter((doc) => doc.parent),
+        //     ({ parent }) => parent
+        // );
+        // console.log(nonRoots);
+        const _ = require('lodash');
+
+        const nonRoots = _.groupBy(
+            matchdDocs?.filter((doc) => doc.parent),
+            ({ parent }) => parent
+        );
+
+        const nonRootsKeys = Reflect.ownKeys(nonRoots);
+        nonRootsKeys.forEach(key => {
+            const foundInRoots = roots.find((root) => root.id === key);
+            if (!foundInRoots) {
+                const foundInDocs = docs.find((doc) => doc.id === key);
+                roots.push(foundInDocs);
+            }
+        });
+
+        roots.sort((a, b) => {
+            if (a.order < b.order) {
+                return -1;
+            }
+            if (a.order > b.order) {
+                return 1;
+            }
+            return 0;
+        });
+
+        setRootNodes([...roots]);
+        setNonRootNodesGrouped({ ...nonRoots });
+
+    }, [pathName])
+
+
     return (
         <nav className="lg:block my-10">
             <ul>
@@ -26,7 +74,7 @@ export default function Sidebar({ docs }) {
                     <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5"></div>
                     <div className="absolute left-2 h-6 w-px bg-emerald-500"></div>
                     <ul role="list" className="border-l border-transparent">
-                        {roots.map((rootNode) => (
+                        {rootNodes.map((rootNode) => (
                             <li key={rootNode.id} className="relative">
                                 <Link
                                     aria-current="page"
@@ -37,12 +85,12 @@ export default function Sidebar({ docs }) {
                                         {rootNode.title}
                                     </span>
                                 </Link>
-                                {nonRoots[rootNode.id] && (
+                                {nonRootNodesGrouped[rootNode.id] && (
                                     <ul
                                         role="list"
                                         className="border-l border-transparent"
                                     >
-                                        {nonRoots[rootNode.id].map(
+                                        {nonRootNodesGrouped[rootNode.id].map(
                                             (subRoot) => (
                                                 <li key={subRoot.id}>
                                                     <Link
